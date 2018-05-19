@@ -14,9 +14,12 @@ namespace egl {
 
     Transformer::Transformer() {
         mIdentityMatrix = new glm::mat4();
+        mScale = 1.0f;
         mZoom = 1.0f;
         mCenterX = 0;
         mCenterY = 0;
+        mRecalMv = true;
+        mRecalProjection = true;
     }
 
     Transformer::~Transformer() {
@@ -35,12 +38,18 @@ namespace egl {
         this->mWidth = width;
         this->mHeight = height;
         mRecalProjection = true;
+        mRecalMv = true;
     }
 
     void Transformer::scale(float scale) {
         this->mScale = scale;
         this->mRecalMv = true;
+    }
 
+    void Transformer::zoom(float zoom) {
+        mCenterX = mWidth / 2;
+        mCenterY = mHeight / 2;
+        mZoom = zoom;
     }
 
     void Transformer::zoom(float centerX, float centerY, float zoom) {
@@ -57,8 +66,8 @@ namespace egl {
         return mHeight;
     }
 
-    GLfloat *Transformer::transformedArrayV2(GLfloat *dst, GLfloat *src, int length, int stride,
-                                             bool normalized) {
+    const GLfloat *Transformer::transformedArrayV2(GLfloat *dst, GLfloat *src, int length,
+                                                   int stride, bool normalized) {
         glm::mat3 transformMatrix;
         glm::vec3 vec;
 
@@ -89,7 +98,7 @@ namespace egl {
         return dst;
     }
 
-    GLfloat *Transformer::transformedArrayV3(GLfloat *dst, GLfloat *src, int length, int stride,
+    const GLfloat *Transformer::transformedArrayV3(GLfloat *dst, GLfloat *src, int length, int stride,
                                              bool normalized) {
         glm::mat4 transformMatrix;
         glm::vec4 vec;

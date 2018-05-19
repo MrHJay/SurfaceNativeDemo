@@ -22,17 +22,19 @@ namespace egl {
 
         void scale(float scale);
 
+        void zoom(float zoom);
+
         void zoom(float centerX, float centerY, float zoom);
 
         float getWidth();
 
         float getHeight();
 
-        GLfloat *transformedArrayV2(GLfloat *dst, GLfloat *src, int length, int stride,
-                                    bool normalized);
+        const GLfloat *transformedArrayV2(GLfloat *dst, GLfloat *src, int length, int stride,
+                                          bool normalized);
 
-        GLfloat *transformedArrayV3(GLfloat *dst, GLfloat *src, int length, int stride,
-                                    bool normalized);
+        const GLfloat *transformedArrayV3(GLfloat *dst, GLfloat *src, int length, int stride,
+                                          bool normalized);
 
         glm::mat4 getModelViewMatrix();
 
@@ -42,6 +44,7 @@ namespace egl {
 
     private:
         void recalMv();
+
         void recalProjection();
 
         glm::mat4 *mIdentityMatrix;

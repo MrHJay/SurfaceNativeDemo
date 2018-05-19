@@ -53,8 +53,6 @@ private:
 
     GLuint textureId;
     egl::FrameRect *frameRect;
-    egl::Drawable2D *drawable2D;
-    egl:: FontTextureProgram * fontTexture;
 
 };
 

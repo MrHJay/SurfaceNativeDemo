@@ -105,9 +105,9 @@ namespace egl {
         mTexOffset = &arrays[0];
     }
 
-    void Texture2DProgram::draw(float mvpMatrix[16], const GLfloat *vertexBuffer, int firstVertex,
+    void Texture2DProgram::draw(float mvpMatrix[16], const GLfloat *vertexCoords, int firstVertex,
                                 int vertexCount, int coordsPerVertex, int vertexStride,
-                                float texMatrix[16], const GLfloat *texBuffer, GLuint textureId,
+                                float texMatrix[16], const GLfloat *texCoords, GLuint textureId,
                                 int texStride) {
         // Select the program.
         glUseProgram(mEglProgram);
@@ -125,35 +125,34 @@ namespace egl {
         glUniformMatrix4fv(muTexMatrixLoc, 1, GL_FALSE, texMatrix);
         EGLError::checkEGLError("glUniformMatrix4fv");
 
-//        GLuint VAO, VBO,VBO2;
-//        glGenVertexArrays(1, &VAO);
-//        glGenBuffers(1, &VBO);
+//        GLuint VBO1,VBO2;
+//        glGenBuffers(1, &VBO1);
 //        glGenBuffers(1, &VBO2);
 
-//        glBindVertexArray(VAO);
-//        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-//        glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), vertexBuffer, GL_STATIC_DRAW);
+//        glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+//        glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), vertexCoords, GL_STATIC_DRAW);
 
-        // Connect vertexBuffer to "aPosition".
+        // Connect vertexCoords to "aPosition".
         glVertexAttribPointer(static_cast<GLuint>(maPositionLoc), coordsPerVertex, GL_FLOAT,
-                              GL_FALSE, vertexStride, vertexBuffer);
+                              GL_FALSE, vertexStride, vertexCoords);
 
         // Enable the "aPosition" vertex attribute.
         glEnableVertexAttribArray(static_cast<GLuint>(maPositionLoc));
         EGLError::checkEGLError("glEnableVertexAttribArray");
 
 //        glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-//        glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), texBuffer, GL_STATIC_DRAW);
+//        glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), texCoords, GL_STATIC_DRAW);
 
-        // Connect texBuffer to "aTextureCoord".
+        // Connect texCoords to "aTextureCoord".
         glVertexAttribPointer(static_cast<GLuint>(maTextureCoordLoc), 2, GL_FLOAT, GL_FALSE,
-                              texStride, texBuffer);
+                              texStride, texCoords);
         EGLError::checkEGLError("glVertexAttribPointer");
 
         // Enable the "aTextureCoord" vertex attribute.
         glEnableVertexAttribArray(static_cast<GLuint>(maTextureCoordLoc));
         EGLError::checkEGLError("glEnableVertexAttribArray");
 
+//        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         // Populate the convolution kernel, if present.
         if (muKernelLoc >= 0) {
@@ -169,7 +168,7 @@ namespace egl {
         // Done -- disable vertex array, texture, and program.
         glDisableVertexAttribArray(static_cast<GLuint>(maPositionLoc));
         glDisableVertexAttribArray(static_cast<GLuint>(maTextureCoordLoc));
-//        glDeleteBuffers(1, &VBO);
+//        glDeleteBuffers(1, &VBO1);
 //        glDeleteBuffers(1, &VBO2);
         glBindTexture(mTextureTarget, 0);
         glUseProgram(0);

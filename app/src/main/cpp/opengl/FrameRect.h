@@ -26,20 +26,19 @@ namespace egl {
 
         void scale(float scale);
 
-        void resetScale();
-
         void projection(float width, float height);
+
+        void zoom(float x, float y, float zoom);
+
+        void resetScale();
 
     private:
         Drawable2D *mDrawable2D;
         Texture2DProgram *mTexture2DProgram;
         FontTextureProgram *mFontTextureProgram;
 
-        glm::mat4 *mIdentityMatrix;
+        Transformer *mTransformer;
         glm::mat4 mMvpMatrix;
-        glm::mat4 mProjectionMatrix;
-        float *tmpMatrix;
-        float mWidth, mHeight;
     };
 
 }

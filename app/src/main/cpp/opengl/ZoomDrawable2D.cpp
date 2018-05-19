@@ -11,7 +11,7 @@
 #include "ZoomDrawable2D.h"
 
 egl::ZoomDrawable2D::ZoomDrawable2D(egl::Prefab type) : Drawable2D(type) {
-    mScale = 1.0f;
+    mZoom = 1.0f;
     mCenterX = getTexCenterX();
     mCenterY = getTexCenterY();
     mRecalculate = true;
@@ -36,11 +36,11 @@ const GLfloat *egl::ZoomDrawable2D::getTexCoordArray() {
 
         transformMatrix = glm::translate(transformMatrix, glm::vec2(mCenterX, mCenterY));
 
-        transformMatrix = glm::scale(transformMatrix, glm::vec2(1 / mScale, 1 / mScale));
+        transformMatrix = glm::scale(transformMatrix, glm::vec2(1 / mZoom, 1 / mZoom));
 
         transformMatrix = glm::translate(transformMatrix, glm::vec2(-mCenterX, -mCenterY));
 
-        LOG_IF("Zoom", "scale=%f, x=%f, y=%f", mScale, mCenterX, mCenterY);
+        LOG_IF("Zoom", "scale=%f, x=%f, y=%f", mZoom, mCenterX, mCenterY);
         LOG_IF("Zoom", "transform = %s", glm::to_string(transformMatrix).data());
 
         for (int i = 0; i < length; i += 2) {
@@ -56,12 +56,12 @@ const GLfloat *egl::ZoomDrawable2D::getTexCoordArray() {
 }
 
 void egl::ZoomDrawable2D::zoom(float zoom) {
-    mScale = zoom;
+    mZoom = zoom;
     mRecalculate = true;
 }
 
 void egl::ZoomDrawable2D::zoom(float x, float y, float zoom) {
-    mScale = zoom;
+    mZoom = zoom;
     mCenterX = x;
     mCenterY = y;
     mRecalculate = true;

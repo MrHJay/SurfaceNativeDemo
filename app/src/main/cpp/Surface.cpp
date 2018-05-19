@@ -93,8 +93,8 @@ void Surface::attachSurface(JNIEnv *jniEnv, jobject jSurface) {
     }
 
     egl::Texture2DProgram *texture2DProgram = new egl::Texture2DProgram();
-    drawable2D = new egl::ZoomDrawable2D(egl::Prefab::FULL_RECT);
-    fontTexture = new egl::FontTextureProgram("/sdcard/test_font.ttf");
+    egl::ZoomDrawable2D *drawable2D = new egl::ZoomDrawable2D(egl::Prefab::FULL_RECT);
+    egl::FontTextureProgram *fontTexture = new egl::FontTextureProgram("/sdcard/test_font.ttf");
     fontTexture->setColor(0xFFCCCCCC);
     fontTexture->setTextSize(64);
     frameRect = new egl::FrameRect(texture2DProgram, fontTexture, drawable2D);
@@ -119,8 +119,7 @@ void Surface::resize(jint width, jint height) {
     if (frameRect) {
         frameRect->projection(mViewWidth, mViewHeight);
     }
-    fontTexture->resize(mViewWidth, mViewHeight);
-    LOG_DF(TAG, "resize h=%d, w=%d", height, width);
+    LOG_DF(TAG, "onResize h=%d, w=%d", height, width);
 }
 
 void Surface::detachSurface() {
@@ -225,17 +224,12 @@ void Surface::drawFrame(float *matrix) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     frameRect->drawFrame(textureId, matrix);
-    fontTexture->renderText("123 111", mViewWidth / 2, mViewHeight / 2);
     eglSwapBuffers(m_display, m_surface);
 }
 
 void Surface::zoom(float x, float y, float scale) {
-    fontTexture->zoom((x), (mViewHeight - y), scale);
     if (frameRect) {
-//        frameRect->scale(scale);
-    }
-    if (drawable2D) {
-        drawable2D->zoom((x / mViewWidth), 1 - (y / mViewHeight), scale);
+        frameRect->zoom(x, y, scale);
     }
 }
 

@@ -46,12 +46,10 @@ namespace egl {
         glUniform4f(mTextColorLoc, 1.0f, 1.0f, 1.0f, 1.0f);
     }
 
-    void FontTextureProgram::resize(float width, float height) {
-        AbsTextureProgram::resize(width, height);
-
+    void FontTextureProgram::onResize(Transformer *transformer) {
         glUseProgram(mEglProgram);
         glUniformMatrix4fv(mProjectionLoc, 1, GL_FALSE,
-                           glm::value_ptr(mTransformer->getProjectionMatrix()));
+                           glm::value_ptr(transformer->getProjectionMatrix()));
         glUseProgram(0);
     }
 
@@ -65,7 +63,8 @@ namespace egl {
         }
     }
 
-    void FontTextureProgram::renderText(std::string text, float x, float y) {
+    void
+    FontTextureProgram::drawText(std::string text, float x, float y, Transformer *transformer) {
         if (mFont) {
             // Activate corresponding render state
             glUseProgram(mEglProgram);
@@ -76,15 +75,11 @@ namespace egl {
             for (c = text.begin(); c != text.end(); c++) {
                 Character ch = mFont->getCharacter(*c);
 
-                GLfloat pos[2] = {x + ch.bearing.x * mScale,
-                                  y - (ch.size.y - ch.bearing.y) * mScale};
-
                 GLfloat xpos = x + ch.bearing.x * mScale;
                 GLfloat ypos = y - (ch.size.y - ch.bearing.y) * mScale;
 
                 GLfloat w = ch.size.x * mScale;
                 GLfloat h = ch.size.y * mScale;
-                // Update VBO for each character
                 GLfloat vertices[6][4] = {
                         {xpos,     ypos + h, 0.0, 0.0},
                         {xpos,     ypos,     0.0, 1.0},
@@ -94,7 +89,8 @@ namespace egl {
                         {xpos + w, ypos,     1.0, 1.0},
                         {xpos + w, ypos + h, 1.0, 0.0}
                 };
-                mTransformer->transformedArrayV2(*vertices, *vertices, 24, 4, true);
+                if (transformer != nullptr)
+                    transformer->transformedArrayV2(*vertices, *vertices, 24, 4, true);
                 // Render glyph texture over quad
                 glBindTexture(GL_TEXTURE_2D, ch.textureID);
 
@@ -115,6 +111,10 @@ namespace egl {
             glUseProgram(0);
         }
 
+    }
+
+    void FontTextureProgram::drawText(std::string text, float x, float y) {
+        drawText(text, x, y, nullptr);
     }
 
     void FontTextureProgram::setColor(int color) {

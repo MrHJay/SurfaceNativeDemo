@@ -20,20 +20,22 @@
 
 namespace egl {
 
-    class FontTextureProgram : public AbsTextureProgram {
+    class FontTextureProgram {
 
     public:
         FontTextureProgram(const char *fontPath);
 
-        ~FontTextureProgram() override;
+        ~FontTextureProgram();
 
-        void resize(float width, float height) override ;
+        void onResize(Transformer *transformer) ;
 
         void setColor(int color);
 
         void setTextSize(float size);
 
-        void renderText(std::string text, float x, float y);
+        void drawText(std::string text, float x, float y);
+
+        void drawText(std::string text, float x, float y, Transformer *transformer);
 
     private:
         GLuint mEglProgram;

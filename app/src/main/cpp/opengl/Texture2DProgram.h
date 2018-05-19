@@ -20,9 +20,9 @@ namespace egl {
 
         void setTexSize(GLint width, GLint height);
 
-        void draw(float mvpMatrix[16], const GLfloat *vertexBuffer, int firstVertex,
+        void draw(float mvpMatrix[16], const GLfloat *vertexCoords, int firstVertex,
                   int vertexCount, int coordsPerVertex, int vertexStride, float texMatrix[16],
-                  const GLfloat *texBuffer, GLuint textureId, int texStride);
+                  const GLfloat *texCoords, GLuint textureId, int texStride);
 
     private:
         GLenum mTextureTarget;

@@ -6,6 +6,7 @@
 #define SURFACENATIVEDEMO_ZOOMDRAWABLE2D_H
 
 #include "Drawable2D.h"
+#include "Transformer.h"
 
 namespace egl {
 
@@ -23,7 +24,7 @@ namespace egl {
 
     private:
         bool mRecalculate;
-        float mScale;
+        float mZoom;
         float mCenterX, mCenterY;
         GLfloat *mZoomTexCoorArray;
     };
