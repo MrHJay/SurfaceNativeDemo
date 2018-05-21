@@ -1,5 +1,6 @@
 package com.zqautomotive.surfacenativedemo;
 
+import android.content.res.AssetManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -28,6 +29,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private SurfaceTexture mSurfaceTexture;
     private int mCameraPreviewThousandFps;
     private int mTextureId;
+    private SurfaceHolder mSurfaceHolder;
+    private boolean hasSurface;
     private GestureDetector gestureDetector;
     private GestureDetector.SimpleOnGestureListener listener = new GestureDetector.SimpleOnGestureListener() {
         float mScale = 1;
@@ -57,30 +60,48 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         setContentView(R.layout.activity_main);
 
         surfaceView = findViewById(R.id.surfaceView);
-        surfaceView.getHolder().addCallback(this);
+        mSurfaceHolder = surfaceView.getHolder();
         gestureDetector = new GestureDetector(this, listener);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i(TAG, "onStart: ");
+        if (!hasSurface) {
+            mSurfaceHolder.addCallback(this);
+        }
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (mCamera == null) {
+        Log.i(TAG, "onResume: ");
+        if (hasSurface) {
             openCamera(VIDEO_WIDTH, VIDEO_HEIGHT, DESIRED_PREVIEW_FPS);
+            startPreview(mSurfaceHolder);
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        Log.i(TAG, "onPause: ");
         if (mCamera != null) {
             mCamera.stopPreview();
             mCamera.release();
             mCamera = null;
         }
 
-        if (mSurfaceTexture != null) {
-            mSurfaceTexture.release();
-            mSurfaceTexture = null;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG, "onStop: ");
+        if (!hasSurface) {
+            mSurfaceHolder.removeCallback(this);
         }
     }
 
@@ -159,12 +180,17 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Log.i(TAG, "surfaceCreated: ");
-        nativeSurfaceCreated(holder.getSurface());
-        mTextureId = nativeCreateTexture();
-        mSurfaceTexture = new SurfaceTexture(mTextureId);
-        mSurfaceTexture.setOnFrameAvailableListener(this);
+        if (!hasSurface) {
+            openCamera(VIDEO_WIDTH, VIDEO_HEIGHT, DESIRED_PREVIEW_FPS);
 
-        startPreview(holder);
+            nativeSurfaceCreated(holder.getSurface(), getAssets());
+            mTextureId = nativeCreateTexture();
+            mSurfaceTexture = new SurfaceTexture(mTextureId);
+            mSurfaceTexture.setOnFrameAvailableListener(this);
+
+            startPreview(holder);
+            hasSurface = true;
+        }
     }
 
     @Override
@@ -177,6 +203,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.i(TAG, "surfaceDestroyed: ");
         nativeSurfaceDestroyed(holder.getSurface());
+
+        if (mSurfaceTexture != null) {
+            mSurfaceTexture.release();
+            mSurfaceTexture = null;
+        }
+
+        hasSurface = false;
     }
 
     private float[] tmpMatrix = new float[16];
@@ -187,10 +220,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             @Override
             public void run() {
                 if (mSurfaceTexture != null) {
-                    changeColor();
                     mSurfaceTexture.updateTexImage();
+                    long timestamp = mSurfaceTexture.getTimestamp();
                     mSurfaceTexture.getTransformMatrix(tmpMatrix);
-                    drawFrame(tmpMatrix);
+                    drawFrame(tmpMatrix, System.currentTimeMillis());
                 }
             }
         });
@@ -198,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     public native void changeColor();
 
-    public native void nativeSurfaceCreated(Surface surface);
+    public native void nativeSurfaceCreated(Surface surface, AssetManager assetManager);
 
     public native void nativeSurfaceChanged(int width, int height);
 
@@ -206,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private native int nativeCreateTexture();
 
-    private native void drawFrame(float[] matrix);
+    private native void drawFrame(float[] matrix, long timestamp);
 
     private native void zoom(float x, float y, float scale);
 

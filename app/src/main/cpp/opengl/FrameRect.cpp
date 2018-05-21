@@ -33,7 +33,7 @@ GLuint egl::FrameRect::createTexture() {
     return mTexture2DProgram->createTexture();
 }
 
-void egl::FrameRect::drawFrame(GLuint textureId, float *texMatrix) {
+void egl::FrameRect::drawFrame(GLuint textureId, float *texMatrix, long timestamp) {
 
 //    GLUtil::logMat4("frame",tmpMatrix);
     mTexture2DProgram->draw(glm::value_ptr(mMvpMatrix), mDrawable2D->getVertexArray(), 0,
@@ -42,7 +42,9 @@ void egl::FrameRect::drawFrame(GLuint textureId, float *texMatrix) {
                             mDrawable2D->getTexCoordArray(), textureId,
                             mDrawable2D->getTexCoordStride());
 
-    mFontTextureProgram->drawText("123 111", mTransformer->getWidth() / 2,
+    char time[32];
+    strftime(time, sizeof(time), "%Y-%m-%d %H:%M:%S", localtime(&timestamp));
+    mFontTextureProgram->drawText(time, mTransformer->getWidth() / 2,
                                   mTransformer->getHeight() / 2, mTransformer);
 }
 

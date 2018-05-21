@@ -60,7 +60,7 @@ Surface::~Surface() {
     }
 }
 
-void Surface::attachSurface(JNIEnv *jniEnv, jobject jSurface) {
+void Surface::attachSurface(JNIEnv *jniEnv, jobject jSurface, jobject assetManager) {
 
     m_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (m_display == EGL_NO_DISPLAY) {
@@ -92,21 +92,22 @@ void Surface::attachSurface(JNIEnv *jniEnv, jobject jSurface) {
 //        m_drawContext->setDefaultFrameBuffer();
     }
 
+    AAssetManager *manager = AAssetManager_fromJava(jniEnv, assetManager);
+    AAsset *fontFile = AAssetManager_open(manager, "test_font.ttf", AASSET_MODE_BUFFER);
+    off_t fontDataSize = AAsset_getLength(fontFile);
+//
+    FT_Byte *fontData = new FT_Byte[fontDataSize];
+    AAsset_read(fontFile, fontData, (size_t) fontDataSize);
+    AAsset_close(fontFile);
+    egl::Font *font = new egl::NumberFont();
+    font->init(fontData, fontDataSize);
+
     egl::Texture2DProgram *texture2DProgram = new egl::Texture2DProgram();
     egl::ZoomDrawable2D *drawable2D = new egl::ZoomDrawable2D(egl::Prefab::FULL_RECT);
-    egl::FontTextureProgram *fontTexture = new egl::FontTextureProgram("/sdcard/test_font.ttf");
+    egl::FontTextureProgram *fontTexture = new egl::FontTextureProgram(font);
     fontTexture->setColor(0xFFCCCCCC);
     fontTexture->setTextSize(64);
     frameRect = new egl::FrameRect(texture2DProgram, fontTexture, drawable2D);
-
-//    AAssetManager* assetManager = AAssetManager_fromJava(jniEnv, jSurface);
-//    AAsset* fontFile = AAssetManager_open(assetManager, "test_font.ttf", AASSET_MODE_BUFFER);
-//    off_t fontDataSize = AAsset_getLength(fontFile);
-//
-//    FT_Byte* fontData = new FT_Byte[fontDataSize];
-//    AAsset_read(fontFile, fontData, (size_t) fontDataSize);
-//    AAsset_close(fontFile);
-
 
 //    glClearDepthf(1.0);
 //    glEnable(GL_DEPTH_TEST);
@@ -148,7 +149,9 @@ void Surface::changeColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alph
 //    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 //    eglSwapBuffers(m_display, m_surface);
-    m_drawContext->makeCurrent();
+//    m_drawContext->makeCurrent();
+
+    glDeleteTextures(1, &textureId);
 }
 
 bool Surface::createNativeWindow() {
@@ -211,19 +214,22 @@ bool Surface::createNativeWindow() {
 }
 
 GLuint Surface::createTexture() {
+    if (textureId) {
+        glDeleteTextures(1, &textureId);
+    }
     if (frameRect) {
         textureId = frameRect->createTexture();
     }
     return textureId;
 }
 
-void Surface::drawFrame(float *matrix) {
+void Surface::drawFrame(float *matrix, long timestamp) {
 //    m_drawContext->makeCurrent();
 
     glClearColor(0.3f, 0.3f, 0.3f, 0.5f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    frameRect->drawFrame(textureId, matrix);
+    frameRect->drawFrame(textureId, matrix, timestamp / 1000);
     eglSwapBuffers(m_display, m_surface);
 }
 

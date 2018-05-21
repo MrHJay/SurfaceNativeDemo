@@ -29,9 +29,7 @@ namespace egl {
                     "    gl_FragColor = textColor * sampled;\n"
                     "}";
 
-    FontTextureProgram::FontTextureProgram(const char *fontPath) {
-        mFont = new NumberFont();
-        mFont->init(fontPath);
+    FontTextureProgram::FontTextureProgram(Font *font) : mFont(font) {
 
         glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);

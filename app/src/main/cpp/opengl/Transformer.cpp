@@ -5,7 +5,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <common.h>
 #include "Transformer.h"
 
 namespace egl {
@@ -86,14 +85,14 @@ namespace egl {
 
         transformMatrix = glm::translate(transformMatrix, glm::vec2(-centerX, -centerY));
 
-        LOG_IF(TAG_TRANSFORM, "zoom=%f, x=%f, y=%f", mZoom, centerX, centerY);
+        // LOG_IF(TAG_TRANSFORM, "zoom=%f, x=%f, y=%f", mZoom, centerX, centerY);
 
         for (int i = 0; i < length; i += stride) {
             vec = transformMatrix * glm::vec3(src[i], src[i + 1], 1.0f);
             float *xyz = glm::value_ptr(vec);
             dst[i] = xyz[0];
             dst[i + 1] = xyz[1];
-            LOG_DF(TAG_TRANSFORM, "index=%d x=%5f, y=%5f", i, xyz[0], xyz[1]);
+            // LOG_DF(TAG_TRANSFORM, "index=%d x=%5f, y=%5f", i, xyz[0], xyz[1]);
         }
         return dst;
     }
@@ -118,7 +117,7 @@ namespace egl {
 
         transformMatrix = glm::translate(transformMatrix, glm::vec3(-centerX, -centerY, 0.0f));
 
-        LOG_IF(TAG_TRANSFORM, "zoom=%f, x=%f, y=%f", mZoom, centerX, centerY);
+        // LOG_IF(TAG_TRANSFORM, "zoom=%f, x=%f, y=%f", mZoom, centerX, centerY);
 
         for (int i = 0; i < length; i += stride) {
             vec = transformMatrix * glm::vec4(src[i], src[i + 1], src[i + 2], 1.0f);
@@ -126,7 +125,7 @@ namespace egl {
             dst[i] = xyzw[0];
             dst[i + 1] = xyzw[1];
             dst[i + 2] = xyzw[2];
-            LOG_DF(TAG_TRANSFORM, "index=%d x=%5f, y=%5f, z=%5f", i, xyzw[0], xyzw[1], xyzw[2]);
+            // LOG_DF(TAG_TRANSFORM, "index=%d x=%5f, y=%5f, z=%5f", i, xyzw[0], xyzw[1], xyzw[2]);
         }
         return dst;
     }

@@ -5,9 +5,10 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_zqautomotive_surfacenativedemo_MainActivity_nativeSurfaceCreated(JNIEnv *env,
                                                                           jobject instance,
-                                                                          jobject surface) {
+                                                                          jobject surface,
+                                                                          jobject assetManager) {
     if (g_surface) {
-        g_surface->attachSurface(env, surface);
+        g_surface->attachSurface(env, surface, assetManager);
 //        g_surface->drawColor();
     }
 
@@ -62,24 +63,29 @@ Java_com_zqautomotive_surfacenativedemo_MainActivity_nativeCreateTexture(JNIEnv 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_zqautomotive_surfacenativedemo_MainActivity_drawFrame(JNIEnv *env, jobject instance,
-                                                               jfloatArray matrix_) {
+                                                               jfloatArray matrix_,
+                                                               jlong timestamp) {
     jfloat *matrix = env->GetFloatArrayElements(matrix_, NULL);
 
     if (g_surface) {
-        g_surface->drawFrame(matrix);
+        g_surface->drawFrame(matrix, timestamp);
     }
 
     env->ReleaseFloatArrayElements(matrix_, matrix, 0);
-}extern "C"
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_zqautomotive_surfacenativedemo_MainActivity_zoom(JNIEnv *env, jobject instance, jfloat x,
-                                                           jfloat y, jfloat scale) {
+                                                          jfloat y, jfloat scale) {
 
     if (g_surface) {
-        g_surface->zoom(x,y,scale);
+        g_surface->zoom(x, y, scale);
     }
 
-}extern "C"
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_zqautomotive_surfacenativedemo_MainActivity_reset(JNIEnv *env, jobject instance) {
 

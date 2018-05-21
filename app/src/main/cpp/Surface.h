@@ -21,7 +21,7 @@ public:
 
     ~Surface();
 
-    void attachSurface(JNIEnv *jniEnv, jobject jSurface);
+    void attachSurface(JNIEnv *jniEnv, jobject jSurface, jobject assetManager);
 
     void resize(jint width, jint height);
 
@@ -37,7 +37,7 @@ public:
 
     GLuint createTexture();
 
-    void drawFrame(float *matrix);
+    void drawFrame(float *matrix, long timestamp);
 
 private:
     bool createNativeWindow();

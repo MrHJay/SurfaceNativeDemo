@@ -22,7 +22,7 @@ namespace egl {
 
         GLuint createTexture();
 
-        void drawFrame(GLuint textureId, float texMatrix[16]);
+        void drawFrame(GLuint textureId, float texMatrix[16], long timestamp);
 
         void scale(float scale);
 

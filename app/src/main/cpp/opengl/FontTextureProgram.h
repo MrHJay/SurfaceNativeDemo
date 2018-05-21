@@ -23,7 +23,7 @@ namespace egl {
     class FontTextureProgram {
 
     public:
-        FontTextureProgram(const char *fontPath);
+        FontTextureProgram(Font *font);
 
         ~FontTextureProgram();
 
