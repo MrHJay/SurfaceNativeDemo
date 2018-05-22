@@ -46,8 +46,8 @@ namespace egl {
     }
 
     void Transformer::zoom(float zoom) {
-        mCenterX = mWidth / 2;
-        mCenterY = mHeight / 2;
+        mCenterX = 0.5f;
+        mCenterY = 0.5f;
         mZoom = zoom;
     }
 
@@ -72,11 +72,11 @@ namespace egl {
 
         float centerX, centerY;
         if (normalized) {
+            centerX = mCenterX * mWidth;
+            centerY = mCenterY * mHeight;
+        } else {
             centerX = mCenterX;
             centerY = mCenterY;
-        } else {
-            centerX = mCenterX / mWidth;
-            centerY = mCenterY / mHeight;
         }
 
         transformMatrix = glm::translate(transformMatrix, glm::vec2(centerX, centerY));

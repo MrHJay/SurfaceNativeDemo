@@ -33,7 +33,7 @@ namespace egl {
     public:
         Font();
 
-        ~Font();
+        virtual ~Font();
 
         virtual void init(const char *fontPath);
 
@@ -56,6 +56,8 @@ namespace egl {
 
     public:
         NumberFont();
+
+        ~NumberFont() override;
 
         void initCharSet(FT_Face face) override;
 

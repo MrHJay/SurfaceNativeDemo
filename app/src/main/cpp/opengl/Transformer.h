@@ -22,8 +22,16 @@ namespace egl {
 
         void scale(float scale);
 
+        /**
+         * @param zoom zoom size
+         */
         void zoom(float zoom);
 
+        /**
+         * @param centerX (0~1.0) zoom center of X axis
+         * @param centerY (0~1.0) zoom center of Y axis
+         * @param zoom zoom size
+         */
         void zoom(float centerX, float centerY, float zoom);
 
         float getWidth();

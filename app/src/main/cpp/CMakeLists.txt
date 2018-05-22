@@ -29,14 +29,12 @@ add_library( # Sets the name of the library.
              SurfaceApp.cpp
              Surface.h
              Surface.cpp
-             AndroidOGLContext.h
-             AndroidOGLContext.cpp
-             ConfigComparator.h
-             ConfigComparator.cpp
+             WindowSurface.h
+             WindowSurface.cpp
              opengl/EGLCore.h
              opengl/EGLCore.cpp
-             opengl/AbsTextureProgram.h
-             opengl/AbsTextureProgram.cpp
+             opengl/ConfigComparator.h
+             opengl/ConfigComparator.cpp
              opengl/Texture2DProgram.h
              opengl/Texture2DProgram.cpp
              opengl/GLUtil.h
@@ -87,6 +85,7 @@ target_link_libraries( # Specifies the target library.
                        # included in the NDK.
                        ${log-lib}
                        android
+                       mediandk
                        EGL
                        GLESv2
                        ${FREE_TYPE_LIB}

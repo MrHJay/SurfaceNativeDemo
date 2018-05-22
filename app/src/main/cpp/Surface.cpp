@@ -5,7 +5,7 @@
 #include <android/log.h>
 #include "Surface.h"
 #include "common.h"
-#include "ConfigComparator.h"
+#include "opengl/ConfigComparator.h"
 #include <algorithm>
 #include <opengl/ZoomDrawable2D.h>
 #include <opengl/Font.h>
@@ -15,45 +15,18 @@
 Surface *g_surface = 0;
 const char *TAG = "NativeDemoTag";
 
-static EGLint *getConfigAttributesListRGB8() {
-    static EGLint attr_list[] = {
-            EGL_RED_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_BLUE_SIZE, 8,
-            EGL_ALPHA_SIZE, 0,
-            EGL_STENCIL_SIZE, 0,
-            EGL_DEPTH_SIZE, 16,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-            EGL_SURFACE_TYPE, EGL_PBUFFER_BIT | EGL_WINDOW_BIT,
-            EGL_NONE
-    };
-    return attr_list;
-}
-
-static EGLint *getConfigAttributesListR5G6B5() {
-    static EGLint attr_list[] = {
-            EGL_RED_SIZE, 5,
-            EGL_GREEN_SIZE, 6,
-            EGL_BLUE_SIZE, 5,
-            EGL_STENCIL_SIZE, 0,
-            EGL_DEPTH_SIZE, 16,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-            EGL_SURFACE_TYPE, EGL_PBUFFER_BIT | EGL_WINDOW_BIT,
-            EGL_NONE
-    };
-    return attr_list;
-}
-
 Surface::Surface()
-        : m_drawContext(NULL), m_display(EGL_NO_DISPLAY), m_surface(EGL_NO_SURFACE),
-          m_config(NULL), textureId(0) {
+        : textureId(0) {
     g_surface = this;
 }
 
 Surface::~Surface() {
 
-    if (m_drawContext) {
-        delete m_drawContext;
+    if (mEglCore) {
+        if (mDisplaySurface) {
+            delete mDisplaySurface;
+        }
+        delete mEglCore;
     }
     if (frameRect) {
         delete frameRect;
@@ -62,40 +35,23 @@ Surface::~Surface() {
 
 void Surface::attachSurface(JNIEnv *jniEnv, jobject jSurface, jobject assetManager) {
 
-    m_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (m_display == EGL_NO_DISPLAY) {
-        LOG_D(TAG, "get display failed");
-    }
+    mEglCore = new egl::EGLCore(NULL);
 
-    EGLint majorVersion;
-    EGLint minorVersion;
-    if (!eglInitialize(m_display, &majorVersion, &minorVersion)) {
-        LOG_D(TAG, "initialize failed");
-        return;
-    }
-
-    LOG_DF(TAG, "init major version = %d, minor version = %d", majorVersion, minorVersion);
-
-    m_nativeWindow = ANativeWindow_fromSurface(jniEnv, jSurface);
-    if (!m_nativeWindow) {
+    ANativeWindow *nativeWindow = ANativeWindow_fromSurface(jniEnv, jSurface);
+    if (!nativeWindow) {
         LOG_W(TAG, "create native window failed");
         return;
     }
 
-    if (!createNativeWindow()) {
-        return;
-    }
+    mDisplaySurface = new WindowSurface(mEglCore);
+    mDisplaySurface->createWindowSurface(nativeWindow);
 
-    m_drawContext = new AndroidOGLContext(m_display, m_surface, m_config, NULL);
-    if (m_drawContext) {
-        m_drawContext->makeCurrent();
-//        m_drawContext->setDefaultFrameBuffer();
-    }
+    mDisplaySurface->makeCurrent();
 
     AAssetManager *manager = AAssetManager_fromJava(jniEnv, assetManager);
     AAsset *fontFile = AAssetManager_open(manager, "test_font.ttf", AASSET_MODE_BUFFER);
     off_t fontDataSize = AAsset_getLength(fontFile);
-//
+
     FT_Byte *fontData = new FT_Byte[fontDataSize];
     AAsset_read(fontFile, fontData, (size_t) fontDataSize);
     AAsset_close(fontFile);
@@ -109,8 +65,6 @@ void Surface::attachSurface(JNIEnv *jniEnv, jobject jSurface, jobject assetManag
     fontTexture->setTextSize(64);
     frameRect = new egl::FrameRect(texture2DProgram, fontTexture, drawable2D);
 
-//    glClearDepthf(1.0);
-//    glEnable(GL_DEPTH_TEST);
 }
 
 void Surface::resize(jint width, jint height) {
@@ -125,8 +79,9 @@ void Surface::resize(jint width, jint height) {
 
 void Surface::detachSurface() {
 
-    if (m_drawContext) {
-        m_drawContext->resetSurface();
+    mEglCore->makeCurrentNone();
+    if (mDisplaySurface) {
+        delete mDisplaySurface;
     }
     if (frameRect) {
         delete frameRect;
@@ -140,7 +95,8 @@ void Surface::drawColor() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    eglSwapBuffers(m_display, m_surface);
+//    eglSwapBuffers(mDisplay, mSurface);
+    mDisplaySurface->swapBuffer();
 
 }
 
@@ -148,70 +104,12 @@ void Surface::changeColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alph
 //    glClearColor(red, green, blue, alpha);
 //    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-//    eglSwapBuffers(m_display, m_surface);
-//    m_drawContext->makeCurrent();
+//    eglSwapBuffers(mDisplay, mSurface);
+//    mDrawContext->makeCurrent();
 
     glDeleteTextures(1, &textureId);
 }
 
-bool Surface::createNativeWindow() {
-    int const kMaxConfigCount = 40;
-    EGLConfig configs[kMaxConfigCount];
-    int count = 0;
-    if (eglChooseConfig(m_display, getConfigAttributesListRGB8(), configs, kMaxConfigCount,
-                        &count) != EGL_TRUE) {
-        if (eglChooseConfig(m_display, getConfigAttributesListR5G6B5(), configs, kMaxConfigCount,
-                            &count) == EGL_TRUE) {
-            LOG_D(TAG, ("Backbuffer format: R5G6B5"));
-        }
-    } else {
-        LOG_D(TAG, ("Backbuffer format: RGB8"));
-    }
-
-    std::sort(&configs[0], &configs[count], ConfigComparator(m_display));
-    for (int i = 0; i < count; ++i) {
-        EGLConfig currentConfig = configs[i];
-
-        EGLint format;
-        eglGetConfigAttrib(m_display, currentConfig, EGL_NATIVE_VISUAL_ID, &format);
-        ANativeWindow_setBuffersGeometry(m_nativeWindow, 0, 0, format);
-
-        EGLint surfaceAttributes[] = {EGL_RENDER_BUFFER, EGL_BACK_BUFFER, EGL_NONE};
-        m_surface = eglCreateWindowSurface(m_display, currentConfig, m_nativeWindow,
-                                           surfaceAttributes);
-        if (m_surface == EGL_NO_SURFACE)
-            continue;
-        else
-            m_config = currentConfig;
-
-        break;
-    }
-
-    if (m_surface == EGL_NO_SURFACE) {
-        EGLint error = eglGetError();
-        switch (error) {
-            case EGL_BAD_MATCH:
-                LOG_W(TAG, "1 bad match");
-                break;
-            case EGL_BAD_CONFIG:
-                LOG_W(TAG, "2 bad config");
-                break;
-            case EGL_BAD_NATIVE_WINDOW:
-                LOG_W(TAG, "3 bad native window");
-                break;
-            case EGL_BAD_ALLOC:
-                LOG_W(TAG, "4 bad alloc");
-                break;
-            default:
-                LOG_WF(TAG, "5 bad unknown %d", error);
-                break;
-
-        }
-        return false;
-    }
-
-    return true;
-}
 
 GLuint Surface::createTexture() {
     if (textureId) {
@@ -224,18 +122,18 @@ GLuint Surface::createTexture() {
 }
 
 void Surface::drawFrame(float *matrix, long timestamp) {
-//    m_drawContext->makeCurrent();
+    mDisplaySurface->makeCurrent();
 
     glClearColor(0.3f, 0.3f, 0.3f, 0.5f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     frameRect->drawFrame(textureId, matrix, timestamp / 1000);
-    eglSwapBuffers(m_display, m_surface);
+    mDisplaySurface->swapBuffer();
 }
 
 void Surface::zoom(float x, float y, float scale) {
     if (frameRect) {
-        frameRect->zoom(x, y, scale);
+        frameRect->zoom(x / mViewWidth, y / mViewHeight, scale);
     }
 }
 

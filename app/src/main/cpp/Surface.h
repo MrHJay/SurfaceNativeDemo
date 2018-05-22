@@ -11,8 +11,9 @@
 
 #include <opengl/FrameRect.h>
 #include <opengl/FontTextureProgram.h>
-#include "AndroidOGLContext.h"
+#include <opengl/EGLCore.h>
 #include "opengl/Texture2DProgram.h"
+#include "WindowSurface.h"
 
 class Surface {
 
@@ -40,14 +41,9 @@ public:
     void drawFrame(float *matrix, long timestamp);
 
 private:
-    bool createNativeWindow();
 
-    AndroidOGLContext *m_drawContext;
-    ANativeWindow *m_nativeWindow;
-
-    EGLDisplay m_display;
-    EGLSurface m_surface;
-    EGLConfig m_config;
+    egl::EGLCore *mEglCore;
+    WindowSurface *mDisplaySurface;
 
     int mViewWidth, mViewHeight;
 

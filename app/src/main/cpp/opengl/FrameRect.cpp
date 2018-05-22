@@ -60,8 +60,8 @@ void egl::FrameRect::projection(float width, float height) {
 }
 
 void egl::FrameRect::zoom(float x, float y, float zoom) {
-    mDrawable2D->zoom((x / mTransformer->getWidth()), 1 - (y / mTransformer->getHeight()), zoom);
-    mTransformer->zoom(x, mTransformer->getHeight() - y, zoom);
+    mDrawable2D->zoom(x, 1 - y, zoom);
+    mTransformer->zoom(x, 1 - y, zoom);
 }
 
 void egl::FrameRect::resetScale() {

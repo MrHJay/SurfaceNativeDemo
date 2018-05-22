@@ -71,6 +71,7 @@ Java_com_zqautomotive_surfacenativedemo_MainActivity_drawFrame(JNIEnv *env, jobj
         g_surface->drawFrame(matrix, timestamp);
     }
 
+
     env->ReleaseFloatArrayElements(matrix_, matrix, 0);
 }
 

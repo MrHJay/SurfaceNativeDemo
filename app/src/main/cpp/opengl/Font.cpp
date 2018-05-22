@@ -136,4 +136,8 @@ namespace egl {
         }
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+
+    NumberFont::~NumberFont() {
+
+    }
 }

@@ -19,26 +19,27 @@ namespace egl {
 
         ~EGLCore();
 
-        bool createWindowSurface(ANativeWindow *nativeWindow);
+        EGLSurface createWindowSurface(ANativeWindow *nativeWindow);
+
+        EGLSurface createOffscreenSurface(GLint width, GLint height);
 
         void resize(GLsizei width, GLsizei height);
 
-        void detachSurface();
+        void detachSurface(EGLSurface eglSurface);
 
-        void makeCurrent();
+        void makeCurrent(EGLSurface drawSurface, EGLSurface readSurface);
 
         void makeCurrentNone();
 
-        void swapBuffer();
+        void swapBuffer(EGLSurface eglSurface);
 
     private:
 
-        ANativeWindow *m_nativeWindow;
+        void getConfig(EGLConfig *configs, int size);
 
-        EGLContext m_context;
-        EGLDisplay m_display;
-        EGLSurface m_surface;
-        EGLConfig m_config;
+        EGLContext mContext;
+        EGLDisplay mDisplay;
+        EGLConfig mConfig;
     };
 
     static EGLint *getContextAttributesList() {
@@ -78,5 +79,5 @@ namespace egl {
         return attr_list;
     }
 
-#endif //SURFACENATIVEDEMO_EGLCORE_H
 }
+#endif //SURFACENATIVEDEMO_EGLCORE_H
